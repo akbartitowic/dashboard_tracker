@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Lock, Mail } from 'lucide-react';
+import { __ } from '@/translations';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -18,7 +19,7 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <>
-            <Head title="Log in" />
+            <Head title={__('Log in')} />
             <div className="min-h-screen flex items-center justify-center p-6 mesh-gradient">
                 <div className="w-full max-w-[400px] scale-in">
                     <div className="text-center mb-8">
@@ -26,7 +27,7 @@ export default function Login({ status, canResetPassword }) {
                             <Lock size={24} />
                         </div>
                         <h1 className="text-2xl font-bold tracking-tight text-foreground">Tracker BPKP</h1>
-                        <p className="text-muted-foreground mt-2 text-sm">Welcome back to your workspace</p>
+                        <p className="text-muted-foreground mt-2 text-sm">{__('Welcome back to your workspace')}</p>
                     </div>
 
                     <div className="glass-panel p-8 rounded-[2rem] shadow-2xl shadow-primary/5 border-white/40">
@@ -38,7 +39,7 @@ export default function Login({ status, canResetPassword }) {
 
                         <form onSubmit={submit} className="space-y-5">
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-semibold text-muted-foreground ml-1">Email</label>
+                                <label className="text-[11px] font-semibold text-muted-foreground ml-1">{__('Email')}</label>
                                 <div className="relative">
                                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                                     <input
@@ -55,7 +56,7 @@ export default function Login({ status, canResetPassword }) {
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-semibold text-muted-foreground ml-1">Password</label>
+                                <label className="text-[11px] font-semibold text-muted-foreground ml-1">{__('Password')}</label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                                     <input
@@ -80,7 +81,7 @@ export default function Login({ status, canResetPassword }) {
                                         onChange={(e) => setData('remember', e.target.checked)}
                                         className="rounded border-border text-primary focus:ring-primary/20 bg-background/50"
                                     />
-                                    <span className="text-[11px] font-medium text-muted-foreground">Remember me</span>
+                                    <span className="text-[11px] font-medium text-muted-foreground">{__('Remember me')}</span>
                                 </label>
 
                                 {canResetPassword && (
@@ -88,7 +89,7 @@ export default function Login({ status, canResetPassword }) {
                                         href={route('password.request')}
                                         className="text-[11px] font-medium text-primary hover:text-primary/80 transition-colors"
                                     >
-                                        Forgot password?
+                                        {__('Forgot password?')}
                                     </Link>
                                 )}
                             </div>
@@ -101,7 +102,7 @@ export default function Login({ status, canResetPassword }) {
                                 {processing ? (
                                     <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mx-auto" />
                                 ) : (
-                                    'Sign In'
+                                    __('Sign In')
                                 )}
                             </button>
                         </form>
@@ -111,13 +112,13 @@ export default function Login({ status, canResetPassword }) {
                                 href={route('register')}
                                 className="text-sm text-muted-foreground hover:text-primary font-medium transition-colors"
                             >
-                                Don't have an account? Sign up
+                                {__("Don't have an account? Sign up")}
                             </Link>
                         </div>
                     </div>
 
                     <p className="mt-8 text-center text-[11px] text-muted-foreground font-medium opacity-60">
-                        Secure Enterprise Portal &copy; 2026
+                        {__('Secure Enterprise Portal')} &copy; 2026
                     </p>
                 </div>
             </div>

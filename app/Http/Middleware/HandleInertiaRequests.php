@@ -39,6 +39,14 @@ class HandleInertiaRequests extends Middleware
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
+            'translations' => function () {
+                $locale = app()->getLocale();
+                $file = base_path("lang/{$locale}.json");
+                if (file_exists($file)) {
+                    return json_decode(file_get_contents($file), true);
+                }
+                return [];
+            },
         ];
     }
 }

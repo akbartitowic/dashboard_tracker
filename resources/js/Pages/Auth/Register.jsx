@@ -1,6 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Mail, User, Send, ArrowLeft } from 'lucide-react';
 import GuestLayout from '@/Layouts/GuestLayout';
+import { __ } from '@/translations';
 
 export default function Register() {
     const { data, setData, post, processing, errors } = useForm({
@@ -15,21 +16,21 @@ export default function Register() {
 
     return (
         <GuestLayout>
-            <Head title="Register" />
+            <Head title={__('Register')} />
             
             <div className="text-center mb-8">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary text-primary-foreground mb-4 shadow-lg shadow-primary/20">
                     <User size={24} />
                 </div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">Create Account</h1>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">{__('Create Account')}</h1>
                 <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-                    Join Project Tracker to start managing your workspace. We'll send a verification link to your email.
+                    {__("Join Project Tracker to start managing your workspace. We'll send a verification link to your email.")}
                 </p>
             </div>
 
             <form onSubmit={submit} className="space-y-6">
                 <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Username</label>
+                    <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1">{__('Username')}</label>
                     <div className="relative group">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
                         <input
@@ -45,7 +46,7 @@ export default function Register() {
                 </div>
 
                 <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Email Address</label>
+                    <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1">{__('Email Address')}</label>
                     <div className="relative group">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
                         <input
@@ -71,7 +72,7 @@ export default function Register() {
                             <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                         ) : (
                             <>
-                                <span>Sign Up</span>
+                                <span>{__('Sign Up')}</span>
                                 <Send size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                             </>
                         )}
@@ -85,7 +86,7 @@ export default function Register() {
                     className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-primary font-bold transition-colors"
                 >
                     <ArrowLeft size={14} />
-                    Already have an account? Log in
+                    {__('Already have an account? Log in')}
                 </Link>
             </div>
         </GuestLayout>

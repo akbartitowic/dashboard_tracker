@@ -45,10 +45,9 @@ class AccountSetupController extends Controller
             abort(403);
         }
 
-        $user->update([
-            'password' => Hash::make($request->password),
-            'email_verified_at' => now(),
-        ]);
+        $user->password = Hash::make($request->password);
+        $user->email_verified_at = now();
+        $user->save();
 
         event(new Verified($user));
 
