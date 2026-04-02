@@ -16,41 +16,58 @@ use App\Traits\ResolvesPermissions;
 class DataImportController extends Controller
 {
     use ResolvesPermissions;
-    public function downloadTemplate()
+    public function downloadTaskTemplate()
     {
-        return Excel::download(new TemplateExport, 'project_import_template.xlsx');
+        return Excel::download(new \App\Exports\TaskTemplateExport, 'task_import_template.xlsx');
     }
 
-    public function import(Request $request, Board $board)
+    public function downloadSubTaskTemplate()
+    {
+        return Excel::download(new \App\Exports\SubTaskTemplateExport, 'subtask_import_template.xlsx');
+    }
+
+    public function downloadDetailTemplate()
+    {
+        return Excel::download(new \App\Exports\DetailTemplateExport, 'detail_import_template.xlsx');
+    }
+
+    public function importTasks(Request $request, Board $board)
     {
         $this->authorizeProjectAction($request->user(), $board->id, 'data_import');
-
         $request->validate(['file' => 'required|mimes:xlsx,xls,csv|max:10240']);
 
         try {
-            Excel::import(new ProjectDataImport($board), $request->file('file'));
-            return back()->with('success', 'Data imported successfully!');
+            Excel::import(new \App\Imports\TaskImport($board), $request->file('file'));
+            return back()->with('success', 'Tasks imported successfully!');
         } catch (\Exception $e) {
             return back()->withErrors(['file' => 'Import failed: ' . $e->getMessage()]);
         }
     }
 
-    public function downloadQaTemplate()
+    public function importSubTasks(Request $request, Card $card)
     {
-        return Excel::download(new \App\Exports\QaDetailTemplateExport, 'qa_detail_import_template.xlsx');
+        $this->authorizeProjectAction($request->user(), $card->cardList->board_id, 'data_import');
+        $request->validate(['file' => 'required|mimes:xlsx,xls,csv|max:10240']);
+
+        try {
+            Excel::import(new \App\Imports\SubTaskImport($card), $request->file('file'));
+            return back()->with('success', 'Subtasks imported successfully!');
+        } catch (\Exception $e) {
+            return back()->withErrors(['file' => 'Import failed: ' . $e->getMessage()]);
+        }
     }
 
-    public function importQaDetails(Request $request, Checklist $checklist)
+    public function importDetails(Request $request, Checklist $checklist)
     {
-        $this->authorizeProjectAction($request->user(), $checklist->card->cardList->board->id, 'data_import');
+        $this->authorizeProjectAction($request->user(), $checklist->card->cardList->board_id, 'data_import');
+        $request->validate(['file' => 'required|mimes:xlsx,xls,csv|max:10240']);
 
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:10240',
-        ]);
-
-        Excel::import(new \App\Imports\QaDetailImport($checklist->id), $request->file('file'));
-
-        return back()->with('success', 'QA Details imported successfully.');
+        try {
+            Excel::import(new \App\Imports\DetailImport($checklist), $request->file('file'));
+            return back()->with('success', 'Details imported successfully!');
+        } catch (\Exception $e) {
+            return back()->withErrors(['file' => 'Import failed: ' . $e->getMessage()]);
+        }
     }
 
     public function getBoardsList(Request $request)

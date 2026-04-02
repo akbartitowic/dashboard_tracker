@@ -118,17 +118,22 @@ class ChecklistController extends Controller
 
         // Email Notification
         if ($user->email) {
-            $subject = "📢 New Subtask Assigned: {$checklist->content}";
-            $body = "<h2>Hello {$user->username}</h2>"
-                  . "<p>You have been assigned to a new subtask:</p>"
-                  . "<ul>"
-                  . "<li><strong>Subtask:</strong> {$checklist->content}</li>"
-                  . "<li><strong>Main Task:</strong> {$card->title}</li>"
-                  . "<li><strong>Project:</strong> {$boardName}</li>"
-                  . "</ul>"
-                  . "<p>Please log in to your dashboard to view more details.</p>";
-            
-            $this->email->sendMail($user->email, $subject, $body, $user->id, 'subtask_assignment', $card->id, 'subtask', 'assignment');
+            $subject = "📢 Subtask Baru: {$checklist->content}";
+            $this->email->sendTemplateMail(
+                $user->email, 
+                $subject, 
+                'emails.notification', 
+                [
+                    'username' => $user->username,
+                    'title' => 'Subtask Baru Di-assign',
+                    'message_body' => 'sebuah subtask baru telah di-assign kepadamu.',
+                    'target_type' => 'SUBTASK',
+                    'target_name' => $checklist->content,
+                    'icon' => '📢',
+                    'slot' => '<tr><td style="color:#64748b;font-size:12px;font-weight:600;width:90px;padding:4px 0;">📋 Main Task</td><td style="color:#cbd5e1;font-size:13px;font-weight:600;padding:4px 0;">' . $card->title . '</td></tr>'
+                ],
+                $user->id, 'subtask_assignment', $card->id, 'subtask', 'assignment'
+            );
         }
     }
 

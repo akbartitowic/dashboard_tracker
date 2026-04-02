@@ -68,7 +68,6 @@ class QaDetailController extends Controller
     {
         $checklist = $qaDetail->checklist;
         $card = $checklist->card;
-        $boardName = $card->cardList->board->name ?? 'Project';
         
         // WA Notification
         if ($user->phone) {
@@ -85,16 +84,24 @@ class QaDetailController extends Controller
 
         // Email Notification
         if ($user->email) {
-            $subject = "📢 New Detail Added to: {$checklist->content}";
-            $body = "<h2>Hello {$user->username}</h2>"
-                  . "<p>A new QA detail has been added to your subtask:</p>"
-                  . "<ul>"
-                  . "<li><strong>Detail:</strong> {$qaDetail->title}</li>"
-                  . "<li><strong>Subtask:</strong> {$checklist->content}</li>"
-                  . "<li><strong>Main Task:</strong> {$card->title}</li>"
-                  . "</ul>";
-            
-            $this->email->sendMail($user->email, $subject, $body, $user->id, 'qa_addition', $card->id, 'detail', 'addition');
+            $subject = "📢 Detail Baru: {$checklist->content}";
+            $this->email->sendTemplateMail(
+                $user->email, 
+                $subject, 
+                'emails.notification', 
+                [
+                    'username' => $user->username,
+                    'title' => 'Detail QA Baru Ditambahkan',
+                    'message_body' => 'ada detail QA baru pada subtask yang kamu kerjakan.',
+                    'target_type' => 'DETAIL',
+                    'target_name' => $qaDetail->title,
+                    'icon' => '📝',
+                    'header_color' => '#d946ef',
+                    'header_color_end' => '#a855f7',
+                    'slot' => '<tr><td style="color:#64748b;font-size:12px;font-weight:600;width:90px;padding:4px 0;">🔹 Subtask</td><td style="color:#cbd5e1;font-size:13px;font-weight:600;padding:4px 0;">' . $checklist->content . '</td></tr>'
+                ],
+                $user->id, 'qa_addition', $card->id, 'detail', 'addition'
+            );
         }
     }
 
@@ -143,7 +150,6 @@ class QaDetailController extends Controller
 
         $checklist = $qaDetail->checklist;
         $card = $checklist->card;
-        $boardName = $card->cardList->board->name ?? 'Project';
         
         // WA Notification
         if ($user->phone) {
@@ -152,8 +158,7 @@ class QaDetailController extends Controller
                  . "Kamu telah ditugaskan pada detail QA baru:\n\n"
                  . "🔸 *Detail:* {$qaDetail->title}\n"
                  . "🔹 *Subtask:* {$checklist->content}\n"
-                 . "📋 *Main Task:* {$card->title}\n"
-                 . "📁 *Project:* {$boardName}\n\n"
+                 . "📋 *Main Task:* {$card->title}\n\n"
                  . "Silakan cek dashboard untuk detailnya.";
             
             $this->whatsapp->sendMessage($user->phone, $msg, $user->id, 'qa_assignment', $card->id, 'detail', 'assignment');
@@ -161,18 +166,24 @@ class QaDetailController extends Controller
 
         // Email Notification
         if ($user->email) {
-            $subject = "📢 New QA Detail Assigned: {$qaDetail->title}";
-            $body = "<h2>Hello {$user->username}</h2>"
-                  . "<p>You have been assigned to a new QA detail:</p>"
-                  . "<ul>"
-                  . "<li><strong>Detail:</strong> {$qaDetail->title}</li>"
-                  . "<li><strong>Subtask:</strong> {$checklist->content}</li>"
-                  . "<li><strong>Main Task:</strong> {$card->title}</li>"
-                  . "<li><strong>Project:</strong> {$boardName}</li>"
-                  . "</ul>"
-                  . "<p>Please log in to your dashboard to view more details.</p>";
-            
-            $this->email->sendMail($user->email, $subject, $body, $user->id, 'qa_assignment', $card->id, 'detail', 'assignment');
+            $subject = "📢 Detail QA Baru: {$qaDetail->title}";
+            $this->email->sendTemplateMail(
+                $user->email, 
+                $subject, 
+                'emails.notification', 
+                [
+                    'username' => $user->username,
+                    'title' => 'Detail QA Di-assign',
+                    'message_body' => 'kamu telah ditugaskan pada detail QA baru.',
+                    'target_type' => 'DETAIL',
+                    'target_name' => $qaDetail->title,
+                    'icon' => '📝',
+                    'header_color' => '#d946ef',
+                    'header_color_end' => '#a855f7',
+                    'slot' => '<tr><td style="color:#64748b;font-size:12px;font-weight:600;width:90px;padding:4px 0;">🔹 Subtask</td><td style="color:#cbd5e1;font-size:13px;font-weight:600;padding:4px 0;">' . $checklist->content . '</td></tr>'
+                ],
+                $user->id, 'qa_assignment', $card->id, 'detail', 'assignment'
+            );
         }
     }
 

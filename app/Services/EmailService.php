@@ -86,4 +86,18 @@ class EmailService
             return false;
         }
     }
+
+    /**
+     * Send an email using a Blade template.
+     */
+    public function sendTemplateMail(string $to, string $subject, string $view, array $data, $userId = null, $context = null, $cardId = null, $taskType = null, $purpose = null): bool
+    {
+        try {
+            $body = view($view, $data)->render();
+            return $this->sendMail($to, $subject, $body, $userId, $context, $cardId, $taskType, $purpose);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Template email error: ' . $e->getMessage());
+            return false;
+        }
+    }
 }

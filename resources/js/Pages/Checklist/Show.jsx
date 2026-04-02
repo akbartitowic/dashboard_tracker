@@ -84,7 +84,7 @@ const ChecklistShow = ({ checklist, users, auth }) => {
         const formData = new FormData();
         formData.append('file', file);
 
-        router.post(route('import.excel.qa', checklist.id), formData, {
+        router.post(route('import.details', checklist.id), formData, {
             onSuccess: () => {
                 alert('QA Details imported successfully!');
                 setShowImport(false);
@@ -132,75 +132,11 @@ const ChecklistShow = ({ checklist, users, auth }) => {
                         {/* Header with Live Progress */}
                         <div className="glass-panel rounded-[2rem] border-white/40 shadow-2xl overflow-hidden mb-6">
                             <div className="px-8 py-6">
-                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
-                                    {checklist.card?.card_list?.board?.name} / {checklist.card?.title}
-                                </p>
-                                
-                                <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center justify-between mb-4">
                                     <h1 className="text-2xl font-black tracking-tight text-foreground">{checklist.content}</h1>
-                                    <div className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-xl border ${PRIORITY_MAP[checklist.priority] || PRIORITY_MAP.medium}`}>
-                                        {checklist.priority}
-                                    </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pb-6 border-b border-border/20">
-                                    <div className="space-y-4">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                                                <CheckCircle2 size={10} className="text-primary" />
-                                                Expected Result
-                                            </label>
-                                            <textarea 
-                                                className="w-full bg-background/30 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all resize-none h-20"
-                                                defaultValue={checklist.expected_result}
-                                                onBlur={(e) => router.put(route('checklists.update', checklist.id), { expected_result: e.target.value }, { preserveScroll: true })}
-                                                placeholder="What should happen?"
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                                                <ListPlus size={10} className="text-primary" />
-                                                Steps to Reproduce
-                                            </label>
-                                            <textarea 
-                                                className="w-full bg-background/30 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all resize-none h-24"
-                                                defaultValue={checklist.steps_to_reproduce}
-                                                onBlur={(e) => router.put(route('checklists.update', checklist.id), { steps_to_reproduce: e.target.value }, { preserveScroll: true })}
-                                                placeholder="1. Step one..."
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                                                <Upload size={10} className="text-primary" />
-                                                Image URL
-                                            </label>
-                                            <input 
-                                                className="w-full bg-background/30 border border-border/50 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary transition-all"
-                                                defaultValue={checklist.image_url}
-                                                onBlur={(e) => router.put(route('checklists.update', checklist.id), { image_url: e.target.value }, { preserveScroll: true })}
-                                                placeholder="https://..."
-                                            />
-                                            {checklist.image_url && <a href={checklist.image_url} target="_blank" className="text-[9px] text-primary flex items-center gap-1 underline">View Image <ExternalLink size={8}/></a>}
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                                                <AlertCircle size={10} className="text-primary" />
-                                                Error / Reference URL
-                                            </label>
-                                            <input 
-                                                className="w-full bg-background/30 border border-border/50 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary transition-all"
-                                                defaultValue={checklist.error_url}
-                                                onBlur={(e) => router.put(route('checklists.update', checklist.id), { error_url: e.target.value }, { preserveScroll: true })}
-                                                placeholder="https://..."
-                                            />
-                                            {checklist.error_url && <a href={checklist.error_url} target="_blank" className="text-[9px] text-primary flex items-center gap-1 underline">Open URL <ExternalLink size={8}/></a>}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="mt-6">
+                                <div className="mt-4 pt-4 border-t border-border/20">
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Overall QA Progress</span>
                                         <span className={`text-xl font-black transition-all duration-300 ${overallProgress === 100 ? 'text-emerald-500' : 'text-primary'}`}>
@@ -237,7 +173,7 @@ const ChecklistShow = ({ checklist, users, auth }) => {
                                     <div className="glass-panel p-5 rounded-2xl border-white/20 hover:border-primary/30 transition-all mb-6">
                                         <h4 className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">QA Template</h4>
                                         <p className="text-[10px] text-muted-foreground font-medium mb-3 leading-relaxed">Download specific template for QA details.</p>
-                                        <a href={route('import.excel.qa_template')} target="_blank" className="inline-flex items-center gap-2 text-[10px] font-black text-foreground hover:text-primary transition-colors bg-secondary/50 px-3 py-1.5 rounded-lg border border-border/50">
+                                        <a href={route('import.detail.template')} target="_blank" className="inline-flex items-center gap-2 text-[10px] font-black text-foreground hover:text-primary transition-colors bg-secondary/50 px-3 py-1.5 rounded-lg border border-border/50">
                                             DOWNLOAD QA TEMPLATE
                                         </a>
                                     </div>
@@ -261,7 +197,6 @@ const ChecklistShow = ({ checklist, users, auth }) => {
                             )}
                             {qaList.map(qa => {
                                 const st = STATUS_MAP[qa.status] || STATUS_MAP['to do'];
-                                const qaFields = [qa.expected_result, qa.steps_to_reproduce, qa.image_url, qa.error_url].filter(Boolean).length;
                                 return (
                                     <div key={qa.id} className="glass-panel rounded-[1.5rem] border-white/40 shadow-lg overflow-hidden">
                                         {/* Row Header */}
@@ -272,9 +207,6 @@ const ChecklistShow = ({ checklist, users, auth }) => {
                                                     <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg border ${PRIORITY_MAP[qa.priority] || PRIORITY_MAP.medium}`}>
                                                         {qa.priority}
                                                     </span>
-                                                    {qaFields > 0 && (
-                                                        <span className="text-[8px] text-muted-foreground font-bold">{qaFields}/4 fields filled</span>
-                                                    )}
                                                 </div>
                                             </div>
                                             {/* Mini progress & Assignee */}

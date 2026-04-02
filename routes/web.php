@@ -82,10 +82,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Trello/Excel Import
     Route::post('/import/trello', [TrelloImportController::class, 'import'])->name('import.trello');
-    Route::get('/import/excel/template', [DataImportController::class, 'downloadTemplate'])->name('import.excel.template');
-    Route::get('/import/excel/qa-template', [DataImportController::class, 'downloadQaTemplate'])->name('import.excel.qa_template');
-    Route::post('/import/excel/{board}', [DataImportController::class, 'import'])->name('import.excel');
-    Route::post('/import/excel/qa/{checklist}', [DataImportController::class, 'importQaDetails'])->name('import.excel.qa');
+    // Improved Import Flow
+    Route::get('/import/tasks/template', [DataImportController::class, 'downloadTaskTemplate'])->name('import.task.template');
+    Route::get('/import/subtasks/template', [DataImportController::class, 'downloadSubTaskTemplate'])->name('import.subtask.template');
+    Route::get('/import/details/template', [DataImportController::class, 'downloadDetailTemplate'])->name('import.detail.template');
+    
+    Route::post('/import/tasks/{board}', [DataImportController::class, 'importTasks'])->name('import.tasks');
+    Route::post('/import/subtasks/{card}', [DataImportController::class, 'importSubTasks'])->name('import.subtasks');
+    Route::post('/import/details/{checklist}', [DataImportController::class, 'importDetails'])->name('import.details');
     Route::post('/admin/reset', [TrelloImportController::class, 'resetData'])->name('admin.reset');
 
     // Selection Helpers for Move Feature

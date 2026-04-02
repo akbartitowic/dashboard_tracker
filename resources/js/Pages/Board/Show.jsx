@@ -144,6 +144,26 @@ const Board = ({ auth, board, users, permissions }) => {
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [editingTitle, setEditingTitle] = useState(board?.name || '');
 
+    // Improved Import Flow States
+    const [importType, setImportType] = useState('task'); // 'task', 'subtask', 'detail'
+    const [selectedCardId, setSelectedCardId] = useState('');
+    const [selectedChecklistId, setSelectedChecklistId] = useState('');
+    const [cardChecklists, setCardChecklists] = useState([]);
+    const [importLoading, setImportLoading] = useState(false);
+
+    // Fetch Checklists when Card is selected for Detail Import
+    useEffect(() => {
+        if (selectedCardId && importType === 'detail') {
+            fetch(route('api.card-checklists', selectedCardId))
+                .then(res => res.json())
+                .then(data => {
+                    setCardChecklists(data);
+                    setSelectedChecklistId('');
+                })
+                .catch(err => console.error('Failed to load checklists', err));
+        }
+    }, [selectedCardId, importType]);
+
     // Keep editing card updated when board prop changes (from Inertia visits)
     useEffect(() => {
         if (editingCard) {
@@ -643,7 +663,7 @@ const Board = ({ auth, board, users, permissions }) => {
 
                     {showImport && (
                         <div className="fixed inset-0 bg-background/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 fade-in">
-                            <div className="bg-card border border-border max-w-lg w-full p-8 rounded-2xl shadow-2xl relative overflow-hidden group">
+                            <div className="bg-card border border-border max-w-xl w-full p-8 rounded-2xl shadow-2xl relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-primary/10 transition-colors" />
                                 
                                 <button onClick={() => setShowImport(false)} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors">
@@ -655,74 +675,138 @@ const Board = ({ auth, board, users, permissions }) => {
                                         <Upload size={20} />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-black tracking-tight text-foreground">Data Import Flow</h3>
-                                        <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">Migrate your workspace data</p>
+                                        <h3 className="text-xl font-black tracking-tight text-foreground">Targeted Data Import</h3>
+                                        <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">Select import target level</p>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4 mb-8">
-                                    <div className="glass-panel p-5 rounded-2xl border-white/20 hover:border-primary/30 transition-all">
-                                        <h4 className="text-[11px] font-black uppercase tracking-widest text-primary mb-2">Excel Workbook</h4>
-                                        <p className="text-[10px] text-muted-foreground font-medium mb-4 leading-relaxed">Best for bulk task uploads. Supports lists, descriptions, and nested subtasks.</p>
-                                        <a 
-                                            href={route('import.excel.template')} 
-                                            target="_blank"
-                                            className="inline-flex items-center gap-2 text-[10px] font-black text-foreground hover:text-primary transition-colors bg-secondary/50 px-3 py-1.5 rounded-lg border border-border/50"
+                                {/* Step 1: Select Type */}
+                                <div className="flex gap-2 p-1 bg-secondary/30 rounded-xl mb-6">
+                                    {['task', 'subtask', 'detail'].map(type => (
+                                        <button 
+                                            key={type}
+                                            onClick={() => setImportType(type)}
+                                            className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest px-2 transition-all ${importType === type ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-foreground'}`}
                                         >
-                                            <ListIcon size={12} />
-                                            DOWNLOAD TEMPLATE
-                                        </a>
+                                            {type}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                    <div className="glass-panel p-4 rounded-xl border-white/20 h-full flex flex-col">
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-primary mb-2">Instructions</h4>
+                                        <p className="text-[9px] text-muted-foreground font-medium flex-1">
+                                            {importType === 'task' && "Import new cards directly into the current board sections."}
+                                            {importType === 'subtask' && "Target a specific main task to populate it with new checklists."}
+                                            {importType === 'detail' && "Target a specific subtask to populate it with fine-grained QA details."}
+                                        </p>
                                     </div>
-                                    <div className="glass-panel p-5 rounded-2xl border-white/20 opacity-50 cursor-not-allowed">
-                                        <h4 className="text-[11px] font-black uppercase tracking-widest text-muted-foreground mb-2">Trello JSON</h4>
-                                        <p className="text-[10px] text-muted-foreground font-medium mb-4 leading-relaxed">Import from legacy Trello board exports. (Legacy Mode)</p>
-                                        <div className="inline-flex items-center gap-2 text-[10px] font-black text-muted-foreground bg-secondary/20 px-3 py-1.5 rounded-lg border border-border/50">
-                                            JSON FORMAT
+                                    <div className="md:col-span-2 space-y-4">
+                                        {/* Target Selection */}
+                                        {importType === 'subtask' && (
+                                            <div>
+                                                <label className="block text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1.5 pl-1">Target Task (Required)</label>
+                                                <select 
+                                                    className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-[11px] font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                                    value={selectedCardId}
+                                                    onChange={e => setSelectedCardId(e.target.value)}
+                                                >
+                                                    <option value="">-- Choose Target Task --</option>
+                                                    {board.card_lists?.flatMap(l => l.cards || []).map(card => (
+                                                        <option key={card.id} value={card.id}>{card.title}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        )}
+
+                                        {importType === 'detail' && (
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <label className="block text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1.5 pl-1">Target Task</label>
+                                                    <select 
+                                                        className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-[11px] font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                                        value={selectedCardId}
+                                                        onChange={e => setSelectedCardId(e.target.value)}
+                                                    >
+                                                        <option value="">-- Choose Task --</option>
+                                                        {board.card_lists?.flatMap(l => l.cards || []).map(card => (
+                                                            <option key={card.id} value={card.id}>{card.title}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1.5 pl-1">Target Subtask (Required)</label>
+                                                    <select 
+                                                        className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-[11px] font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                                        value={selectedChecklistId}
+                                                        onChange={e => setSelectedChecklistId(e.target.value)}
+                                                        disabled={!selectedCardId}
+                                                    >
+                                                        <option value="">-- Choose Subtask --</option>
+                                                        {cardChecklists.map(chk => (
+                                                            <option key={chk.id} value={chk.id}>{chk.content}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <a 
+                                                href={route(`import.${importType}.template`)} 
+                                                className="btn btn-ghost text-[10px] gap-2 font-black border border-border/50 shadow-sm w-full uppercase"
+                                            >
+                                                <ListIcon size={12} />
+                                                DOWNLOAD {importType} TEMPLATE
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
 
-                                <label className="relative border-2 border-dashed border-border/50 rounded-2xl p-12 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-primary/[0.02] transition-all group overflow-hidden">
+                                <label className={`relative border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer transition-all group overflow-hidden ${importLoading ? 'opacity-50 pointer-events-none' : 'border-border/50 hover:border-primary/50 hover:bg-primary/[0.02]'}`}>
                                     <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <Upload size={32} className="text-muted-foreground mb-4 group-hover:-translate-y-2 transition-transform duration-500" />
-                                    <span className="text-sm font-black text-foreground mb-1 tracking-tight">Deploy Data File</span>
-                                    <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-50">supports .xlsx, .xls, .csv, .json</span>
+                                    <Upload size={24} className="text-muted-foreground mb-3 group-hover:-translate-y-1 transition-transform" />
+                                    <span className="text-xs font-black text-foreground mb-1 tracking-tight">
+                                        {importLoading ? 'UPLOADING...' : 'Upload File to Deploy'}
+                                    </span>
+                                    <span className="text-[9px] font-bold text-muted-foreground uppercase opacity-50">supports .xlsx, .xls, .csv</span>
                                     <input 
                                         type="file" 
-                                        accept=".xlsx,.xls,.csv,.json" 
+                                        accept=".xlsx,.xls,.csv" 
+                                        disabled={importLoading}
                                         onChange={(e) => {
                                             const file = e.target.files[0];
                                             if (!file) return;
+
+                                            // Validation
+                                            if (importType === 'subtask' && !selectedCardId) return alert('Select target task first');
+                                            if (importType === 'detail' && !selectedChecklistId) return alert('Select target subtask first');
+
+                                            const formData = new FormData();
+                                            formData.append('file', file);
+                                            setImportLoading(true);
+
+                                            let url = '';
+                                            if (importType === 'task') url = route('import.tasks', board.id);
+                                            if (importType === 'subtask') url = route('import.subtasks', selectedCardId);
+                                            if (importType === 'detail') url = route('import.details', selectedChecklistId);
                                             
-                                            // Determine format
-                                            const isJson = file.name.endsWith('.json');
-                                            
-                                            if (isJson) {
-                                                handleImport(e);
-                                            } else {
-                                                const formData = new FormData();
-                                                formData.append('file', file);
-                                                router.post(route('import.excel', board.id), formData, {
-                                                    onSuccess: () => {
-                                                        alert('Excel Import Successful!');
-                                                        setShowImport(false);
-                                                    },
-                                                    onError: (err) => alert('Import Failed: ' + (err.file || 'Unknown error'))
-                                                });
-                                            }
+                                            router.post(url, formData, {
+                                                onSuccess: () => {
+                                                    alert(`${importType.charAt(0).toUpperCase() + importType.slice(1)} Import Successful!`);
+                                                    setShowImport(false);
+                                                    setImportLoading(false);
+                                                },
+                                                onError: (err) => {
+                                                    alert('Import Failed: ' + (err.file || 'Unknown error'));
+                                                    setImportLoading(false);
+                                                }
+                                            });
                                         }} 
                                         className="hidden" 
                                     />
                                 </label>
-                                
-                                <div className="mt-6 p-4 rounded-xl bg-secondary/30 border border-white/5 flex items-start gap-3">
-                                    <div className="p-1 rounded bg-blue-500/10 text-blue-500">
-                                        <Filter size={12} />
-                                    </div>
-                                    <p className="text-[9px] font-medium leading-normal text-muted-foreground">
-                                        <span className="font-black text-foreground">PRO TIP:</span> Use the Excel template to ensure your data mapping matches the system's hierarchy: List &gt; Task &gt; Subtask &gt; Details.
-                                    </p>
-                                </div>
                             </div>
                         </div>
                     )}
