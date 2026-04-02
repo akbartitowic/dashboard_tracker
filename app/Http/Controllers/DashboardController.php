@@ -327,13 +327,15 @@ class DashboardController extends Controller
     {
         $status = strtolower(trim($status));
         $weights = [
+            'to do'         => 0,
             'todo'          => 0,
+            'in progress'   => 25,
             'inprogress'    => 25,
-            'ready to test' => 50,
             'done dev'      => 50,
+            'ready to test' => 50,
             're open'       => 10,
             'done'          => 100,
         ];
-        return $weights[$status] ?? 25;
+        return $weights[$status] ?? 0;
     }
 }

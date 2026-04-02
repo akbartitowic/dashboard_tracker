@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Upload, Filter, User as UserIcon, Calendar, MessageSquare, MoreHorizontal, Trash2, LayoutGrid, List as ListIcon, CheckCircle2, RefreshCw, CheckSquare } from 'lucide-react';
+import { Plus, X, Upload, Filter, User as UserIcon, Calendar, MessageSquare, MoreHorizontal, Trash2, LayoutGrid, List as ListIcon, CheckCircle2, RefreshCw, CheckSquare, Clock } from 'lucide-react';
 import { DndContext, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -130,8 +130,44 @@ const Board = ({ auth, board, users, permissions }) => {
     const [resetError, setResetError] = useState('');
 
     const [filterAssignee, setFilterAssignee] = useState('all');
+    const [filterStatus, setFilterStatus] = useState('all');
     const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
-    
+
+    const getCardStatus = (card) => {
+        if (!card.checklists || card.checklists.length === 0) return 'to do';
+        
+        const STATUS_PCT = { 'to do': 0, 'in progress': 25, 'done dev': 50, 're open': 10, 'done': 100 };
+        
+        let hasReopen = false;
+        const totalPct = card.checklists.reduce((sum, chk) => {
+            const qas = chk.qa_details || [];
+            if (qas.some(qa => qa.status === 're open')) hasReopen = true;
+            if (chk.status === 're open') hasReopen = true;
+
+            if (qas.length === 0) return sum + (STATUS_PCT[chk.status] ?? 0);
+            const subtaskPct = qas.reduce((s, qa) => s + (STATUS_PCT[qa.status] ?? 0), 0) / qas.length;
+            return sum + subtaskPct;
+        }, 0);
+
+        const cardProgress = Math.round(totalPct / card.checklists.length);
+
+        if (hasReopen) return 're open';
+        if (cardProgress === 100) return 'done';
+        if (cardProgress >= 50) return 'done dev';
+        if (cardProgress > 0) return 'in progress';
+        return 'to do';
+    };
+
+    const filteredCards = (listCards) => {
+        let result = listCards;
+        if (filterAssignee !== 'all') {
+            result = result.filter(c => c.assigned_to === parseInt(filterAssignee));
+        }
+        if (filterStatus !== 'all') {
+            result = result.filter(c => getCardStatus(c) === filterStatus);
+        }
+        return result;
+    };
     const [showCardModal, setShowCardModal] = useState(false);
     const [editingCard, setEditingCard] = useState(null);
     const [activeListId, setActiveListId] = useState(null);
@@ -384,10 +420,6 @@ const Board = ({ auth, board, users, permissions }) => {
         });
     };
 
-    const filteredCards = (listCards) => {
-        if (filterAssignee === 'all') return listCards;
-        return listCards.filter(c => c.assigned_to === parseInt(filterAssignee));
-    };
 
     return (
         <>
@@ -424,6 +456,21 @@ const Board = ({ auth, board, users, permissions }) => {
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1.5 bg-background shadow-sm border border-border/50 rounded-xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+                                <Clock size={12} className="text-muted-foreground" />
+                                <select
+                                    className="bg-transparent text-[11px] font-bold text-muted-foreground focus:outline-none cursor-pointer pr-1"
+                                    value={filterStatus}
+                                    onChange={(e) => setFilterStatus(e.target.value)}
+                                >
+                                    <option value="all">All States</option>
+                                    <option value="to do">To Do</option>
+                                    <option value="in progress">In Progress</option>
+                                    <option value="done dev">Done Dev</option>
+                                    <option value="re open">Re Open</option>
+                                    <option value="done">Done</option>
+                                </select>
+                            </div>
                             <div className="flex items-center gap-1.5 bg-background shadow-sm border border-border/50 rounded-xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
                                 <Filter size={12} className="text-muted-foreground" />
                                 <select

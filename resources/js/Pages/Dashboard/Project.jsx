@@ -6,8 +6,11 @@ import Navbar from '../../Components/Navbar';
 import Breadcrumbs from '../../Components/Breadcrumbs';
 
 const STATUS_COLORS = {
+    'to do':         { bg: 'bg-secondary', text: 'text-muted-foreground', bar: '#94a3b8' },
     'todo':          { bg: 'bg-secondary', text: 'text-muted-foreground', bar: '#94a3b8' },
+    'in progress':   { bg: 'bg-blue-500/10', text: 'text-blue-600', bar: '#3b82f6' },
     'inprogress':    { bg: 'bg-blue-500/10', text: 'text-blue-600', bar: '#3b82f6' },
+    'done dev':      { bg: 'bg-indigo-500/10', text: 'text-indigo-600', bar: '#6366f1' },
     'ready to test': { bg: 'bg-indigo-500/10', text: 'text-indigo-600', bar: '#6366f1' },
     're open':       { bg: 'bg-orange-500/10', text: 'text-orange-600', bar: '#f97316' },
     'done':          { bg: 'bg-emerald-500/10', text: 'text-emerald-600', bar: '#10b981' },

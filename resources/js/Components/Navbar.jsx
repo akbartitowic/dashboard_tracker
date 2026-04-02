@@ -1,11 +1,18 @@
 import React from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { Layout, Search, LogOut, Settings } from 'lucide-react';
+import { Layout, Search, LogOut, Settings, ChevronDown, Users, MessageSquareCode, Send, ScrollText } from 'lucide-react';
+import Dropdown from './Dropdown';
 
 const Navbar = ({ user }) => {
     const { url } = usePage();
 
     const isActive = (path) => url === path || url.startsWith(path + '/');
+    const isSettingActive = () => [
+        route('users.index'),
+        route('whatsapp-settings.index'),
+        route('telegram-settings.index'),
+        route('logs.index')
+    ].some(path => url.startsWith(new URL(path).pathname));
 
     return (
         <nav className="sticky top-0 z-50 bg-background/60 backdrop-blur-xl border-b border-border/50 px-4 md:px-8 py-3 flex items-center justify-between">
@@ -27,20 +34,30 @@ const Navbar = ({ user }) => {
                         Dashboard
                     </Link>
                     {user?.role === 'admin' && (
-                        <>
-                            <Link href={route('users.index')} className={`px-4 py-1.5 rounded-lg transition-all text-xs font-semibold ${isActive('/users') ? 'bg-background text-primary shadow-sm ring-1 ring-black/[0.02]' : 'text-muted-foreground hover:text-foreground hover:bg-background/50'}`}>
-                                Team
-                            </Link>
-                            <Link href={route('whatsapp-settings.index')} className={`px-4 py-1.5 rounded-lg transition-all text-xs font-semibold ${isActive('/whatsapp-settings') ? 'bg-background text-primary shadow-sm ring-1 ring-black/[0.02]' : 'text-muted-foreground hover:text-foreground hover:bg-background/50'}`}>
-                                WhatsApp
-                            </Link>
-                            <Link href={route('telegram-settings.index')} className={`px-4 py-1.5 rounded-lg transition-all text-xs font-semibold ${isActive('/telegram-settings') ? 'bg-background text-primary shadow-sm ring-1 ring-black/[0.02]' : 'text-muted-foreground hover:text-foreground hover:bg-background/50'}`}>
-                                Telegram
-                            </Link>
-                            <Link href={route('logs.index')} className={`px-4 py-1.5 rounded-lg transition-all text-xs font-semibold ${isActive('/logs') ? 'bg-background text-primary shadow-sm ring-1 ring-black/[0.02]' : 'text-muted-foreground hover:text-foreground hover:bg-background/50'}`}>
-                                Logs
-                            </Link>
-                        </>
+                        <Dropdown>
+                            <Dropdown.Trigger>
+                                <button className={`flex items-center gap-2 px-4 py-1.5 rounded-lg transition-all text-xs font-semibold outline-none ${isSettingActive() ? 'bg-background text-primary shadow-sm ring-1 ring-black/[0.02]' : 'text-muted-foreground hover:text-foreground hover:bg-background/50'}`}>
+                                    <Settings size={14} />
+                                    Setting
+                                    <ChevronDown size={12} className="opacity-50" />
+                                </button>
+                            </Dropdown.Trigger>
+                            <Dropdown.Content align="left" width="48" contentClasses="py-2 bg-popover border border-border/50 shadow-2xl rounded-2xl overflow-hidden backdrop-blur-xl">
+                                <Dropdown.Link href={route('users.index')} className="flex items-center gap-3 px-4 py-2.5 text-[11px] font-bold text-foreground hover:bg-primary/10 hover:text-primary transition-colors">
+                                    <Users size={14} /> Team
+                                </Dropdown.Link>
+                                <Dropdown.Link href={route('whatsapp-settings.index')} className="flex items-center gap-3 px-4 py-2.5 text-[11px] font-bold text-foreground hover:bg-primary/10 hover:text-primary transition-colors">
+                                    <MessageSquareCode size={14} /> WhatsApp
+                                </Dropdown.Link>
+                                <Dropdown.Link href={route('telegram-settings.index')} className="flex items-center gap-3 px-4 py-2.5 text-[11px] font-bold text-foreground hover:bg-primary/10 hover:text-primary transition-colors">
+                                    <Send size={14} /> Telegram
+                                </Dropdown.Link>
+                                <div className="mx-2 h-px bg-border/20 my-1" />
+                                <Dropdown.Link href={route('logs.index')} className="flex items-center gap-3 px-4 py-2.5 text-[11px] font-bold text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors">
+                                    <ScrollText size={14} /> Logs
+                                </Dropdown.Link>
+                            </Dropdown.Content>
+                        </Dropdown>
                     )}
                 </div>
             </div>

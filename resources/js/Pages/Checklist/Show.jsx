@@ -41,8 +41,16 @@ const ChecklistShow = ({ checklist, users, auth }) => {
     const [showImport, setShowImport] = useState(false);
     const [importing, setImporting] = useState(false);
 
+    // Filtering state
+    const [filterStatus, setFilterStatus] = useState('all');
+
     // Live overall progress based on local state
     const overallProgress = calcOverallProgress(qaList);
+
+    const filteredQaList = qaList.filter(qa => {
+        if (filterStatus === 'all') return true;
+        return qa.status === filterStatus;
+    });
 
     const handleStatusChange = useCallback((qaId, newStatus) => {
         // Immediately update local state → progress bar updates instantly
@@ -120,13 +128,26 @@ const ChecklistShow = ({ checklist, users, auth }) => {
                                     { label: checklist.content }
                                 ]} 
                             />
-                            <button 
-                                onClick={() => setShowImport(true)}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-background/50 border border-border/50 rounded-xl text-[10px] font-black text-muted-foreground hover:text-primary hover:border-primary/20 transition-all shadow-sm"
-                            >
-                                <Upload size={14} />
-                                IMPORT QA DETAILS
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-1.5 bg-background shadow-sm border border-border/50 rounded-xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+                                    <Clock size={12} className="text-muted-foreground" />
+                                    <select
+                                        className="bg-transparent text-[11px] font-bold text-muted-foreground focus:outline-none cursor-pointer pr-1"
+                                        value={filterStatus}
+                                        onChange={(e) => setFilterStatus(e.target.value)}
+                                    >
+                                        <option value="all">All States</option>
+                                        {STATUS_LIST.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                                    </select>
+                                </div>
+                                <button 
+                                    onClick={() => setShowImport(true)}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-background/50 border border-border/50 rounded-xl text-[10px] font-black text-muted-foreground hover:text-primary hover:border-primary/20 transition-all shadow-sm"
+                                >
+                                    <Upload size={14} />
+                                    IMPORT QA DETAILS
+                                </button>
+                            </div>
                         </div>
 
                         {/* Header with Live Progress */}
@@ -190,12 +211,15 @@ const ChecklistShow = ({ checklist, users, auth }) => {
 
                         {/* QA Detail List */}
                         <div className="space-y-3 mb-5">
-                            {qaList.length === 0 && (
-                                <div className="glass-panel rounded-[1.5rem] p-8 text-center text-muted-foreground text-sm">
-                                    Belum ada QA detail. Klik &quot;+ New QA Detail&quot; untuk menambahkan.
+                            {filteredQaList.length === 0 && (
+                                <div className="glass-panel rounded-[1.5rem] p-8 text-center text-muted-foreground text-sm flex flex-col items-center justify-center gap-2">
+                                    <Clock size={24} className="opacity-20" />
+                                    {qaList.length === 0 
+                                        ? 'Belum ada QA detail. Klik "+ New QA Detail" untuk menambahkan.' 
+                                        : 'Tidak ada QA detail dengan status ini.'}
                                 </div>
                             )}
-                            {qaList.map(qa => {
+                            {filteredQaList.map(qa => {
                                 const st = STATUS_MAP[qa.status] || STATUS_MAP['to do'];
                                 return (
                                     <div key={qa.id} className="glass-panel rounded-[1.5rem] border-white/40 shadow-lg overflow-hidden">
