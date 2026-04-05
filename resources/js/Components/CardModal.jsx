@@ -3,7 +3,7 @@ import { X, Layout, Users, Clock, Trash2, CheckCircle2, Circle, AlertCircle, Lis
 import { router, Link } from '@inertiajs/react';
 import MoveModal from './MoveModal';
 
-const CardModal = ({ card, listId, onClose, onSave, onDelete, users, readOnly, permissions, auth }) => {
+const CardModal = ({ card, listId, onClose, onSave, onDelete, users, readOnly, permissions, auth, board }) => {
     const isAdmin = auth?.user?.role === 'admin';
     const canSubtaskManage = isAdmin || !!permissions?.subtask_manage;
     const canCardDelete = isAdmin || !!permissions?.card_delete;
@@ -16,6 +16,8 @@ const CardModal = ({ card, listId, onClose, onSave, onDelete, users, readOnly, p
         priority: card?.priority || 'medium',
         position: card?.position || 0
     });
+
+    const lists = board?.card_lists || [];
     
     const [loading, setLoading] = useState(false);
     
@@ -208,6 +210,26 @@ const CardModal = ({ card, listId, onClose, onSave, onDelete, users, readOnly, p
                                 {users?.map(u => <option key={u.id} value={u.id}>{u.username}</option>)}
                             </select>
                         </div>
+                        {!card?.id && !readOnly && (
+                            <div className="space-y-2.5">
+                                <label className="text-[11px] font-black text-muted-foreground uppercase tracking-widest ml-1 flex items-center gap-2">
+                                    <Layout size={14} className="text-primary" />
+                                    Starting Status (Section)
+                                </label>
+                                <select
+                                    name="card_list_id"
+                                    className="w-full bg-background/50 border border-border rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-sm appearance-none cursor-pointer"
+                                    value={formData.card_list_id}
+                                    onChange={handleChange}
+                                >
+                                    {lists.map(l => (
+                                        <option key={l.id} value={l.id}>
+                                            {l.name.charAt(0).toUpperCase() + l.name.slice(1).replace('-', ' ')}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                         <div className="space-y-2.5">
                             <label className="text-[11px] font-black text-muted-foreground uppercase tracking-widest ml-1 flex items-center gap-2">
                                 <Clock size={14} className="text-primary" />
@@ -263,7 +285,7 @@ const CardModal = ({ card, listId, onClose, onSave, onDelete, users, readOnly, p
                                     Subtasks Tracker ({checklists.length})
                                 </label>
                                 {checklists.length > 0 && (() => {
-                                    const STATUS_PCT = { 'to do': 0, 'in progress': 25, 'done dev': 50, 're open': 10, 'done': 100 };
+                                    const STATUS_PCT = { 'to do': 0, 'in progress': 25, 'done dev': 50, 'ready to test': 75, 're open': 10, 'done': 100 };
                                     const overallPct = Math.round(
                                         checklists.reduce((sum, chk) => {
                                             const qas = chk.qa_details || [];
@@ -305,7 +327,7 @@ const CardModal = ({ card, listId, onClose, onSave, onDelete, users, readOnly, p
                                             )}
                                             {/* Per-subtask progress bar based on QA details */}
                                             {(() => {
-                                                const STATUS_PCT = { 'to do': 0, 'in progress': 25, 'done dev': 50, 're open': 10, 'done': 100 };
+                                                const STATUS_PCT = { 'to do': 0, 'in progress': 25, 'done dev': 50, 'ready to test': 75, 're open': 10, 'done': 100 };
                                                 const qas = chk.qa_details || [];
                                                 const pct = qas.length === 0
                                                     ? (chk.status === 'done' ? 100 : 0)
@@ -344,6 +366,7 @@ const CardModal = ({ card, listId, onClose, onSave, onDelete, users, readOnly, p
                                                 onChange={(e) => handleUpdateSubtaskStatus(chk.id, e.target.value)}
                                                 className={`text-[10px] font-black uppercase tracking-widest px-2 py-1.5 rounded-lg border appearance-none outline-none transition-colors
                                                     ${chk.status === 'done' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 
+                                                    chk.status === 'ready to test' ? 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20' : 
                                                     chk.status === 're open' ? 'bg-orange-500/10 text-orange-600 border-orange-500/20' : 
                                                     chk.status === 'in progress' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' : 
                                                     'bg-secondary text-muted-foreground border-border/50 hover:bg-secondary/80'}
@@ -351,6 +374,7 @@ const CardModal = ({ card, listId, onClose, onSave, onDelete, users, readOnly, p
                                             >
                                                 <option value="to do">To Do</option>
                                                 <option value="in progress">In Progress</option>
+                                                <option value="ready to test">Ready to Test</option>
                                                 <option value="re open">Re Open</option>
                                                 <option value="done">Done</option>
                                             </select>

@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { router, Head } from '@inertiajs/react';
-import { ArrowLeft, Save, CheckCircle2, RefreshCw, Circle, AlertCircle, Clock, ExternalLink, Image, FileText, ListChecks, Move, Users as UserIcon } from 'lucide-react';
+import { ArrowLeft, Save, CheckCircle2, RefreshCw, Circle, AlertCircle, Clock, ExternalLink, Image, FileText, ListChecks, Move, Users as UserIcon, CheckSquare } from 'lucide-react';
 import Navbar from '../../Components/Navbar';
 import Breadcrumbs from '../../Components/Breadcrumbs';
 import MoveModal from '../../Components/MoveModal';
 
 const STATUSES = [
-    { value: 'to do',       label: 'To Do',       pct: 0,   color: 'bg-secondary text-muted-foreground border-border/50', icon: Circle },
-    { value: 'in progress', label: 'In Progress',  pct: 25,  color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: RefreshCw },
-    { value: 'done dev',    label: 'Done Dev',     pct: 50,  color: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20', icon: Clock },
-    { value: 're open',     label: 'Re Open',      pct: 10,  color: 'bg-orange-500/10 text-orange-600 border-orange-500/20', icon: AlertCircle },
-    { value: 'done',        label: 'Done',         pct: 100, color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20', icon: CheckCircle2 },
+    { value: 'to do',       label: 'To Do',         pct: 0,   color: 'bg-secondary text-muted-foreground border-border/50', icon: Circle },
+    { value: 'in progress', label: 'In Progress',   pct: 25,  color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',    icon: RefreshCw },
+    { value: 'done dev',    label: 'Done Dev',      pct: 50,  color: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20', icon: Clock },
+    { value: 'ready to test', label: 'Ready to Test', pct: 75, color: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20', icon: CheckSquare },
+    { value: 're open',     label: 'Re Open',       pct: 10,  color: 'bg-orange-500/10 text-orange-600 border-orange-500/20', icon: AlertCircle },
+    { value: 'done',        label: 'Done',          pct: 100, color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20', icon: CheckCircle2 },
 ];
 
 const PRIORITIES = [

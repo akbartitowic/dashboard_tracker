@@ -11,7 +11,7 @@ const STATUS_COLORS = {
     'in progress':   { bg: 'bg-blue-500/10', text: 'text-blue-600', bar: '#3b82f6' },
     'inprogress':    { bg: 'bg-blue-500/10', text: 'text-blue-600', bar: '#3b82f6' },
     'done dev':      { bg: 'bg-indigo-500/10', text: 'text-indigo-600', bar: '#6366f1' },
-    'ready to test': { bg: 'bg-indigo-500/10', text: 'text-indigo-600', bar: '#6366f1' },
+    'ready to test': { bg: 'bg-cyan-500/10', text: 'text-cyan-600', bar: '#06b6d4' },
     're open':       { bg: 'bg-orange-500/10', text: 'text-orange-600', bar: '#f97316' },
     'done':          { bg: 'bg-emerald-500/10', text: 'text-emerald-600', bar: '#10b981' },
 };

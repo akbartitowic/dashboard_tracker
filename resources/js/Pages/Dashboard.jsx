@@ -13,7 +13,7 @@ const STATUS_CONFIG = {
     'in progress':   { color: '#3b82f6', bg: 'bg-blue-500/10' },
     'inprogress':    { color: '#3b82f6', bg: 'bg-blue-500/10' },
     'done dev':      { color: '#6366f1', bg: 'bg-indigo-500/10' },
-    'ready to test': { color: '#6366f1', bg: 'bg-indigo-500/10' },
+    'ready to test': { color: '#06b6d4', bg: 'bg-cyan-500/10' },
     're open':       { color: '#f97316', bg: 'bg-orange-500/10' },
     'done':          { color: '#10b981', bg: 'bg-emerald-500/10' },
 };

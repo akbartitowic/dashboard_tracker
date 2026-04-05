@@ -29,7 +29,7 @@ class QaDetailController extends Controller
 
         $request->validate([
             'title' => 'required|string|max:255',
-            'status' => 'nullable|string|in:to do,in progress,done dev,re open,done',
+            'status' => 'nullable|string|in:to do,in progress,done dev,ready to test,re open,done',
             'priority' => 'nullable|string|in:low,medium,high,urgent',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
@@ -121,7 +121,7 @@ class QaDetailController extends Controller
 
         $request->validate([
             'title' => 'nullable|string',
-            'status' => 'nullable|string|in:to do,in progress,done dev,re open,done',
+            'status' => 'nullable|string|in:to do,in progress,done dev,ready to test,re open,done',
             'priority' => 'nullable|string|in:low,medium,high,urgent',
             'assigned_to' => 'nullable|exists:users,id',
             'expected_result' => 'nullable|string',

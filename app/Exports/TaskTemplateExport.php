@@ -37,6 +37,14 @@ class TaskTemplateExport implements FromArray, WithHeadings
                 'admin',
                 'medium',
                 date('Y-m-d', strtotime('+3 days'))
+            ],
+            [
+                'Ready to Test',
+                'Final QA - Mobile Auth',
+                'Verify that JWT authentication works on all mobile platforms.',
+                'admin',
+                'high',
+                date('Y-m-d', strtotime('+5 days'))
             ]
         ];
     }

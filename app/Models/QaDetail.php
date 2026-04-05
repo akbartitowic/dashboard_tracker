@@ -22,15 +22,16 @@ class QaDetail extends Model
     }
 
     // Returns progress percent based on status
-    public static function statusToPercent(string $status): int
+    public function statusToPercent($status)
     {
-        return match($status) {
-            'to do'      => 0,
-            'in progress'=> 25,
-            'done dev'   => 50,
-            're open'    => 10,
-            'done'       => 100,
-            default      => 0,
-        };
+        $map = [
+            'to do' => 0,
+            'in progress' => 25,
+            'done dev' => 50,
+            'ready to test' => 75,
+            're open' => 10,
+            'done' => 100
+        ];
+        return $map[$status] ?? 0;
     }
 }

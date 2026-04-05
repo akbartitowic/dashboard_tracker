@@ -54,7 +54,7 @@ class TemplateExport implements FromArray, WithHeadings
                 'https://api.screenshot.com/auth-flow.png',
                 'https://api.screenshot.com/auth-error.png',
                 'Validation Logic',
-                'to do',
+                'ready to test',
                 'medium',
                 'admin',
                 'Request fails with 422 if email is invalid.',

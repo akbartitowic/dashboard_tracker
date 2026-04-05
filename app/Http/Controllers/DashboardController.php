@@ -332,7 +332,7 @@ class DashboardController extends Controller
             'in progress'   => 25,
             'inprogress'    => 25,
             'done dev'      => 50,
-            'ready to test' => 50,
+            'ready to test' => 75,
             're open'       => 10,
             'done'          => 100,
         ];

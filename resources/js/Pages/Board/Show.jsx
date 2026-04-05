@@ -75,7 +75,7 @@ const SortableCard = ({ card, onClick }) => {
                             </div>
                         )}
                         {card.checklists?.length > 0 && (() => {
-                            const STATUS_PCT = { 'to do': 0, 'in progress': 25, 'done dev': 50, 're open': 10, 'done': 100 };
+                            const STATUS_PCT = { 'to do': 0, 'in progress': 25, 'done dev': 50, 'ready to test': 75, 're open': 10, 'done': 100 };
                             const cardProgress = Math.round(
                                 card.checklists.reduce((sum, chk) => {
                                     const qas = chk.qa_details || [];
@@ -136,7 +136,7 @@ const Board = ({ auth, board, users, permissions }) => {
     const getCardStatus = (card) => {
         if (!card.checklists || card.checklists.length === 0) return 'to do';
         
-        const STATUS_PCT = { 'to do': 0, 'in progress': 25, 'done dev': 50, 're open': 10, 'done': 100 };
+        const STATUS_PCT = { 'to do': 0, 'in progress': 25, 'done dev': 50, 'ready to test': 75, 're open': 10, 'done': 100 };
         
         let hasReopen = false;
         const totalPct = card.checklists.reduce((sum, chk) => {
@@ -466,7 +466,7 @@ const Board = ({ auth, board, users, permissions }) => {
                                     <option value="all">All States</option>
                                     <option value="to do">To Do</option>
                                     <option value="in progress">In Progress</option>
-                                    <option value="done dev">Done Dev</option>
+                                    <option value="ready to test">Ready to Test</option>
                                     <option value="re open">Re Open</option>
                                     <option value="done">Done</option>
                                 </select>
@@ -705,6 +705,7 @@ const Board = ({ auth, board, users, permissions }) => {
                             readOnly={!canCardEdit}
                             permissions={permissions}
                             auth={auth}
+                            board={board}
                         />
                     )}
 

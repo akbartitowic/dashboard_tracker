@@ -21,7 +21,7 @@ class SubTaskTemplateExport implements FromArray, WithHeadings
         return [
             [
                 'Develop Auth Controller',
-                'in progress',
+                'ready to test',
                 'admin'
             ],
             [

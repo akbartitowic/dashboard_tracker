@@ -26,7 +26,7 @@ class DetailTemplateExport implements FromArray, WithHeadings
         return [
             [
                 'Validation Logic',
-                'to do',
+                'ready to test',
                 'medium',
                 'admin',
                 'Request fails with 422 if email is invalid.',

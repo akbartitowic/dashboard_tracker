@@ -39,7 +39,7 @@ class ChecklistController extends Controller
 
         $request->validate([
             'content' => 'required|string|max:255',
-            'status' => 'nullable|string|in:to do,in progress,re open,done',
+            'status' => 'nullable|string|in:to do,in progress,ready to test,re open,done',
             'priority' => 'nullable|string',
             'assigned_to' => 'nullable|exists:users,id'
         ]);
@@ -68,7 +68,7 @@ class ChecklistController extends Controller
 
         $request->validate([
             'content' => 'nullable|string',
-            'status' => 'nullable|string|in:to do,in progress,re open,done',
+            'status' => 'nullable|string|in:to do,in progress,ready to test,re open,done',
             'priority' => 'nullable|string',
             'expected_result' => 'nullable|string',
             'steps_to_reproduce' => 'nullable|string',
