@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, Link } from '@inertiajs/react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { CheckCircle2, Circle, Clock, Layout, AlertCircle, TrendingUp, LayoutGrid, List as ListIcon, RefreshCw, ChevronRight, Folder, Table as TableIcon, BarChart3, Search, Activity, ExternalLink, Layers, Database, MousePointer2 } from 'lucide-react';
 import Navbar from '../Components/Navbar';
@@ -45,27 +45,35 @@ const DonutChart = ({ percent, size = 88, stroke = 10 }) => {
     );
 };
 
-const StatCard = ({ title, value, icon: Icon, trend }) => (
-    <div className="glass-panel p-6 rounded-[2rem] border-white/40 shadow-xl shadow-primary/5 group relative overflow-hidden transition-all hover:-translate-y-1">
-        <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-125 transition-transform duration-500 text-primary">
-            <Icon size={80} />
-        </div>
-        <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shadow-inner">
-                <Icon size={18} />
+const StatCard = ({ title, value, icon: Icon, trend, href }) => {
+    const content = (
+        <div className={`glass-panel p-6 rounded-[2rem] border-white/40 shadow-xl shadow-primary/5 group relative overflow-hidden transition-all ${href ? 'hover:-translate-y-1 hover:border-primary/30 cursor-pointer' : ''}`}>
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-125 transition-transform duration-500 text-primary">
+                <Icon size={80} />
             </div>
-            {trend && (
-                <span className="text-[10px] font-black bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                    {trend}
-                </span>
-            )}
+            <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shadow-inner">
+                    <Icon size={18} />
+                </div>
+                {trend && (
+                    <span className="text-[10px] font-black bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                        {trend}
+                    </span>
+                )}
+            </div>
+            <div className="space-y-1">
+                <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest group-hover:text-primary transition-colors">{title}</span>
+                <div className="text-3xl font-black text-foreground tracking-tight group-hover:text-primary transition-colors">{value}</div>
+            </div>
         </div>
-        <div className="space-y-1">
-            <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest">{title}</span>
-            <div className="text-3xl font-black text-foreground tracking-tight">{value}</div>
-        </div>
-    </div>
-);
+    );
+
+    if (href) {
+        return <Link href={href} className="block w-full">{content}</Link>;
+    }
+
+    return content;
+};
 
 const Dashboard = ({ auth, taskStats, subTaskStats, detailStats, userStats, completion, projects, totalExcellence }) => {
     const [projectView, setProjectView] = useState('grid');
@@ -137,13 +145,26 @@ const Dashboard = ({ auth, taskStats, subTaskStats, detailStats, userStats, comp
                             </div>
                         </header>
 
-                        {/* KPI Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-10">
                             <StatCard title="Active Clusters" value={projects?.length || 0} icon={Folder} trend="+1" />
-                            <StatCard title="Total Tasks" value={totalExcellence?.tasks || 0} icon={Layout} />
-                            <StatCard title="Total Subtasks" value={totalExcellence?.subtasks || 0} icon={Layers} />
-                            <StatCard title="Total Details" value={totalExcellence?.details || 0} icon={Database} />
-                            {/* <StatCard title="Resolved Units" value={completion.done} icon={CheckCircle2} /> */}
+                            <StatCard 
+                                title="Total Tasks" 
+                                value={totalExcellence?.tasks || 0} 
+                                icon={Layout} 
+                                href={projects?.[0] ? route('dashboard.project.items', { board: projects[0].id, type: 'tasks' }) : null}
+                            />
+                            <StatCard 
+                                title="Total Subtasks" 
+                                value={totalExcellence?.subtasks || 0} 
+                                icon={Layers} 
+                                href={projects?.[0] ? route('dashboard.project.items', { board: projects[0].id, type: 'subtasks' }) : null}
+                            />
+                            <StatCard 
+                                title="Total Details" 
+                                value={totalExcellence?.details || 0} 
+                                icon={Database} 
+                                href={projects?.[0] ? route('dashboard.project.items', { board: projects[0].id, type: 'details' }) : null}
+                            />
                             <StatCard title="Health Index" value={`${completionRate}%`} icon={TrendingUp} />
                         </div>
 

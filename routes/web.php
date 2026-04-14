@@ -43,6 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/projects/{board}', [\App\Http\Controllers\DashboardController::class, 'projectDetail'])->name('dashboard.project');
+    Route::get('/dashboard/projects/{board}/items', [\App\Http\Controllers\DashboardController::class, 'projectItems'])->name('dashboard.project.items');
 
     // Users
     Route::get('/users', [\App\Http\Controllers\UserController::class, 'index'])->name('users.index');

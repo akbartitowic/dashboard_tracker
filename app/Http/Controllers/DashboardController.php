@@ -28,72 +28,72 @@ class DashboardController extends Controller
                 ->pluck('id')
                 ->toArray();
 
-        // Analysis Level 1: Tasks (Cards)
-        $taskStats = DB::table('card_lists')
+        // 1. Optimized Data Fetching (Fetch everything needed once)
+        $allCards = DB::table('cards')
+            ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
             ->join('boards', 'card_lists.board_id', '=', 'boards.id')
-            ->select('card_lists.name as status', DB::raw('COUNT(cards.id) as count'), 'card_lists.id as list_id')
-            ->leftJoin('cards', 'card_lists.id', '=', 'cards.card_list_id')
             ->whereIn('boards.id', $accessibleBoardIds)
-            ->groupBy('card_lists.name', 'card_lists.id')
-            ->get()
-            ->map(function($stat) use ($accessibleBoardIds) {
-                $stat->tasks = DB::table('cards')
-                    ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
-                    ->join('boards', 'card_lists.board_id', '=', 'boards.id')
-                    ->where('cards.card_list_id', $stat->list_id)
-                    ->whereIn('boards.id', $accessibleBoardIds)
-                    ->select('cards.id', 'cards.title', 'boards.name as board_name', 'card_lists.board_id')
-                    ->limit(50)
-                    ->get();
-                return $stat;
-            });
+            ->select('cards.*', 'boards.name as board_name', 'card_lists.name as list_name', 'card_lists.board_id')
+            ->get();
 
-        // Analysis Level 2: Subtasks (Checklists)
-        $subTaskStats = DB::table('checklists')
+        $allSubtasks = DB::table('checklists')
             ->join('cards', 'checklists.card_id', '=', 'cards.id')
             ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
             ->join('boards', 'card_lists.board_id', '=', 'boards.id')
             ->whereIn('boards.id', $accessibleBoardIds)
-            ->select('checklists.status', DB::raw('COUNT(*) as count'))
-            ->groupBy('checklists.status')
-            ->get()
-            ->map(function($stat) use ($accessibleBoardIds) {
-                $stat->tasks = DB::table('checklists')
-                    ->join('cards', 'checklists.card_id', '=', 'cards.id')
-                    ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
-                    ->join('boards', 'card_lists.board_id', '=', 'boards.id')
-                    ->where('checklists.status', $stat->status)
-                    ->whereIn('boards.id', $accessibleBoardIds)
-                    ->select('checklists.id', 'checklists.content as title', 'boards.name as board_name', 'card_lists.board_id')
-                    ->limit(50)
-                    ->get();
-                return $stat;
-            });
+            ->select('checklists.*', 'boards.name as board_name', 'card_lists.board_id')
+            ->get();
 
-        // Analysis Level 3: Detail Subtasks (QaDetails)
-        $detailStats = DB::table('qa_details')
+        $allDetails = DB::table('qa_details')
             ->join('checklists', 'qa_details.checklist_id', '=', 'checklists.id')
             ->join('cards', 'checklists.card_id', '=', 'cards.id')
             ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
             ->join('boards', 'card_lists.board_id', '=', 'boards.id')
             ->whereIn('boards.id', $accessibleBoardIds)
-            ->select('qa_details.status', DB::raw('COUNT(*) as count'))
-            ->groupBy('qa_details.status')
-            ->get()
-            ->map(function($stat) use ($accessibleBoardIds) {
-                $stat->tasks = DB::table('qa_details')
-                    ->join('checklists', 'qa_details.checklist_id', '=', 'checklists.id')
-                    ->join('cards', 'checklists.card_id', '=', 'cards.id')
-                    ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
-                    ->join('boards', 'card_lists.board_id', '=', 'boards.id')
-                    ->where('qa_details.status', $stat->status)
-                    ->whereIn('boards.id', $accessibleBoardIds)
-                    ->select('qa_details.id', 'qa_details.title', 'boards.name as board_name', 'card_lists.board_id')
-                    ->limit(50)
-                    ->get();
-                return $stat;
-            });
+            ->select('qa_details.*', 'boards.name as board_name', 'card_lists.board_id')
+            ->get();
 
+        // 2. Grouping in PHP (Analysis Levels)
+        $taskStats = $allCards->groupBy('list_name')->map(function($items, $name) {
+            return (object)[
+                'status' => $name,
+                'count' => $items->count(),
+                'tasks' => $items->take(50)->map(fn($item) => (object)[
+                    'id' => $item->id,
+                    'title' => $item->title,
+                    'board_name' => $item->board_name,
+                    'board_id' => $item->board_id
+                ])
+            ];
+        })->values();
+
+        $subTaskStats = $allSubtasks->groupBy('status')->map(function($items, $status) {
+            return (object)[
+                'status' => $status,
+                'count' => $items->count(),
+                'tasks' => $items->take(50)->map(fn($item) => (object)[
+                    'id' => $item->id,
+                    'title' => $item->content,
+                    'board_name' => $item->board_name,
+                    'board_id' => $item->board_id
+                ])
+            ];
+        })->values();
+
+        $detailStats = $allDetails->groupBy('status')->map(function($items, $status) {
+            return (object)[
+                'status' => $status,
+                'count' => $items->count(),
+                'tasks' => $items->take(50)->map(fn($item) => (object)[
+                    'id' => $item->id,
+                    'title' => $item->title,
+                    'board_name' => $item->board_name,
+                    'board_id' => $item->board_id
+                ])
+            ];
+        })->values();
+
+        // 3. Optimized User Stats
         $userStats = DB::table('users')
             ->select('users.username', DB::raw('COUNT(cards.id) as count'))
             ->leftJoin('cards', function($join) use ($accessibleBoardIds) {
@@ -102,20 +102,17 @@ class DashboardController extends Controller
                          $query->select('id')->from('card_lists')->whereIn('board_id', $accessibleBoardIds);
                      });
             })
-            ->groupBy('users.username')
+            ->groupBy('users.username', 'users.id') // Added users.id for robust grouping
             ->get();
 
-        $completionStats = DB::table('card_lists')
-            ->join('cards', 'card_lists.id', '=', 'cards.card_list_id')
-            ->join('boards', 'card_lists.board_id', '=', 'boards.id')
-            ->whereIn('boards.id', $accessibleBoardIds)
-            ->select(
-                DB::raw("COUNT(*) FILTER (WHERE card_lists.name = 'done') as done"),
-                DB::raw("COUNT(*) FILTER (WHERE card_lists.name != 'done') as not_done")
-            )
-            ->first();
+        // 4. Completion Stats (Using already fetched cards)
+        $doneCount = $allCards->filter(fn($c) => strtolower(trim($c->list_name)) === 'done')->count();
+        $completionStats = (object)[
+            'done' => $doneCount,
+            'not_done' => $allCards->count() - $doneCount
+        ];
 
-        // Per-project aggregated stats with deep relationships for accurate progress
+        // 5. Per-project aggregated stats
         $boards = Board::with(['cardLists.cards.checklists.qaDetails'])
             ->whereIn('id', $accessibleBoardIds)
             ->orderBy('created_at', 'desc')
@@ -155,9 +152,9 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'totalExcellence' => [
-                'tasks'   => DB::table('cards')->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')->whereIn('card_lists.board_id', $accessibleBoardIds)->count(),
-                'subtasks' => DB::table('checklists')->join('cards', 'checklists.card_id', '=', 'cards.id')->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')->whereIn('card_lists.board_id', $accessibleBoardIds)->count(),
-                'details'  => DB::table('qa_details')->join('checklists', 'qa_details.checklist_id', '=', 'checklists.id')->join('cards', 'checklists.card_id', '=', 'cards.id')->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')->whereIn('card_lists.board_id', $accessibleBoardIds)->count(),
+                'tasks'   => $allCards->count(),
+                'subtasks' => $allSubtasks->count(),
+                'details'  => $allDetails->count(),
             ],
             'taskStats'       => $taskStats,
             'subTaskStats'    => $subTaskStats,
@@ -172,10 +169,14 @@ class DashboardController extends Controller
     {
         $this->authorizeProjectAction($request->user(), $board->id, 'analytics_view');
 
-        // Deep load for accurate progress
+        // 1. Deep load for accurate progress and stats
         $board->load(['cardLists.cards.checklists.qaDetails']);
 
-        $totalTasks = $board->cardLists->flatMap->cards->count();
+        $allCards = $board->cardLists->flatMap->cards;
+        $allSubtasks = $allCards->flatMap->checklists;
+        $allDetails = $allSubtasks->flatMap->qaDetails;
+
+        $totalTasks = $allCards->count();
         $doneTasks = 0;
         foreach($board->cardLists as $list) {
             if (strtolower(trim($list->name)) === 'done') {
@@ -193,47 +194,33 @@ class DashboardController extends Controller
             ];
         });
 
-        // Subtask stats for this board
-        $subTaskStats = DB::table('checklists')
-            ->join('cards', 'checklists.card_id', '=', 'cards.id')
-            ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
-            ->where('card_lists.board_id', $board->id)
-            ->select('checklists.status', DB::raw('COUNT(*) as count'))
-            ->groupBy('checklists.status')
-            ->get()
-            ->map(function($stat) use ($board) {
-                $stat->tasks = DB::table('checklists')
-                    ->join('cards', 'checklists.card_id', '=', 'cards.id')
-                    ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
-                    ->where('card_lists.board_id', $board->id)
-                    ->where('checklists.status', $stat->status)
-                    ->select('checklists.id', 'checklists.content as title', DB::raw("'{$board->name}' as board_name"), DB::raw("{$board->id} as board_id"))
-                    ->limit(50)
-                    ->get();
-                return $stat;
-            });
+        // 2. Optimized Subtask stats (Derived from memory)
+        $subTaskStats = $allSubtasks->groupBy('status')->map(function($items, $status) use ($board) {
+            return (object)[
+                'status' => $status,
+                'count' => $items->count(),
+                'tasks' => $items->take(50)->map(fn($item) => (object)[
+                    'id' => $item->id,
+                    'title' => $item->content,
+                    'board_name' => $board->name,
+                    'board_id' => $board->id
+                ])
+            ];
+        })->values();
 
-        // Detail Subtask stats for this board
-        $detailStats = DB::table('qa_details')
-            ->join('checklists', 'qa_details.checklist_id', '=', 'checklists.id')
-            ->join('cards', 'checklists.card_id', '=', 'cards.id')
-            ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
-            ->where('card_lists.board_id', $board->id)
-            ->select('qa_details.status', DB::raw('COUNT(*) as count'))
-            ->groupBy('qa_details.status')
-            ->get()
-            ->map(function($stat) use ($board) {
-                $stat->tasks = DB::table('qa_details')
-                    ->join('checklists', 'qa_details.checklist_id', '=', 'checklists.id')
-                    ->join('cards', 'checklists.card_id', '=', 'cards.id')
-                    ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
-                    ->where('card_lists.board_id', $board->id)
-                    ->where('qa_details.status', $stat->status)
-                    ->select('qa_details.id', 'qa_details.title', DB::raw("'{$board->name}' as board_name"), DB::raw("{$board->id} as board_id"))
-                    ->limit(50)
-                    ->get();
-                return $stat;
-            });
+        // 3. Optimized Detail stats (Derived from memory)
+        $detailStats = $allDetails->groupBy('status')->map(function($items, $status) use ($board) {
+            return (object)[
+                'status' => $status,
+                'count' => $items->count(),
+                'tasks' => $items->take(50)->map(fn($item) => (object)[
+                    'id' => $item->id,
+                    'title' => $item->title,
+                    'board_name' => $board->name,
+                    'board_id' => $board->id
+                ])
+            ];
+        })->values();
 
         $reopenedTasks = DB::table('cards')
             ->join('users', 'cards.assigned_to', '=', 'users.id')
@@ -246,22 +233,8 @@ class DashboardController extends Controller
 
         $totalReopens = $reopenedTasks->sum('reopen_count');
 
-        // High Accuracy Progress Calculation
+        // 4. High Accuracy Progress Calculation
         $overallProgress = $this->calculateBoardProgress($board);
-
-        // Total board-specific ecosystem metrics
-        $totalSubtasks = DB::table('checklists')
-            ->join('cards', 'checklists.card_id', '=', 'cards.id')
-            ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
-            ->where('card_lists.board_id', $board->id)
-            ->count();
-
-        $totalDetails = DB::table('qa_details')
-            ->join('checklists', 'qa_details.checklist_id', '=', 'checklists.id')
-            ->join('cards', 'checklists.card_id', '=', 'cards.id')
-            ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
-            ->where('card_lists.board_id', $board->id)
-            ->count();
 
         return Inertia::render('Dashboard/Project', [
             'board' => [
@@ -270,8 +243,8 @@ class DashboardController extends Controller
                 'description' => $board->description
             ],
             'totalTasks' => $totalTasks,
-            'totalSubtasks' => $totalSubtasks,
-            'totalDetails' => $totalDetails,
+            'totalSubtasks' => $allSubtasks->count(),
+            'totalDetails' => $allDetails->count(),
             'doneTasks' => $doneTasks,
             'overallProgress' => $overallProgress,
             'statusBreakdown' => $statusBreakdown,
@@ -281,6 +254,78 @@ class DashboardController extends Controller
             'totalReopens' => $totalReopens
         ]);
     }
+
+
+    public function projectItems(Request $request, Board $board)
+    {
+        $this->authorizeProjectAction($request->user(), $board->id, 'analytics_view');
+
+        $type = $request->query('type', 'tasks');
+
+        $items = [];
+
+        if ($type === 'tasks') {
+            $items = DB::table('cards')
+                ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
+                ->leftJoin('users as assignees', 'cards.assigned_to', '=', 'assignees.id')
+                ->where('card_lists.board_id', $board->id)
+                ->select('cards.*', 'card_lists.name as status', 'assignees.username as assignee_name')
+                ->orderBy('cards.created_at', 'desc')
+                ->get();
+        } elseif ($type === 'subtasks') {
+            $items = DB::table('checklists')
+                ->join('cards', 'checklists.card_id', '=', 'cards.id')
+                ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
+                ->leftJoin('users as assignees', 'cards.assigned_to', '=', 'assignees.id')
+                ->where('card_lists.board_id', $board->id)
+                ->select('checklists.*', 'cards.title as card_title', 'card_lists.name as root_status', 'assignees.username as pic_name')
+                ->orderBy('checklists.created_at', 'desc')
+                ->get();
+        } elseif ($type === 'details') {
+            $items = DB::table('qa_details')
+                ->join('checklists', 'qa_details.checklist_id', '=', 'checklists.id')
+                ->join('cards', 'checklists.card_id', '=', 'cards.id')
+                ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
+                ->where('card_lists.board_id', $board->id)
+                ->select('qa_details.*', 'checklists.content as checklist_title', 'cards.title as card_title')
+                ->orderBy('qa_details.created_at', 'desc')
+                ->get();
+        } elseif ($type === 'resolved') {
+            $items = DB::table('cards')
+                ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
+                ->leftJoin('users as assignees', 'cards.assigned_to', '=', 'assignees.id')
+                ->where('card_lists.board_id', $board->id)
+                ->whereRaw("LOWER(TRIM(card_lists.name)) = 'done'")
+                ->select('cards.*', 'card_lists.name as status', 'assignees.username as assignee_name')
+                ->orderBy('cards.created_at', 'desc')
+                ->get();
+        } elseif ($type === 'instability') {
+            $items = DB::table('cards')
+                ->join('card_lists', 'cards.card_list_id', '=', 'card_lists.id')
+                ->leftJoin('users as assignees', 'cards.assigned_to', '=', 'assignees.id')
+                ->where('card_lists.board_id', $board->id)
+                ->where('cards.reopen_count', '>', 0)
+                ->select('cards.*', 'card_lists.name as status', 'assignees.username as assignee_name')
+                ->orderByDesc('cards.reopen_count')
+                ->get();
+        }
+
+        // Optimize: Fetch only necessary user fields
+        $users = \App\Models\User::select('id', 'username', 'email')->get();
+        
+        // Optimize: Load only what is needed for the item creation forms
+        if (in_array($type, ['tasks', 'subtasks', 'details'])) {
+            $board->load(['cardLists.cards.checklists']);
+        }
+
+        return Inertia::render('Dashboard/ProjectItems', [
+            'board' => $board,
+            'type' => $type,
+            'items' => $items,
+            'users' => $users,
+        ]);
+    }
+
 
     private function calculateBoardProgress($board)
     {

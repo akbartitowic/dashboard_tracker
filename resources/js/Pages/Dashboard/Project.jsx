@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, Link } from '@inertiajs/react';
 import { ArrowLeft, CheckCircle2, RefreshCw, List as ListIcon, Target, AlertCircle, PieChart as PieIcon, BarChart as BarIcon, Table as TableIcon, ChevronRight, Activity, Search, Layers, Database, MousePointer2 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import Navbar from '../../Components/Navbar';
@@ -105,19 +105,23 @@ const ProjectDashboard = ({ auth, board, totalTasks, totalSubtasks, totalDetails
                         {/* KPI Cards */}
                         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
                             {[
-                                { label: 'Total Tasks', value: totalTasks, icon: ListIcon, color: 'text-primary', bg: 'bg-primary/10' },
-                                { label: 'Total Subtasks', value: totalSubtasks, icon: Layers, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
-                                { label: 'Total Details', value: totalDetails, icon: Database, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-                                { label: 'Resolved (Done)', value: doneTasks, icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-                                { label: 'Instability', value: totalReopens, icon: RefreshCw, color: 'text-rose-500', bg: 'bg-rose-500/10' },
-                            ].map(({ label, value, icon: Icon, color, bg }) => (
-                                <div key={label} className="glass-panel rounded-[2rem] border-white/40 shadow-xl p-6 transition-all hover:-translate-y-1">
-                                    <div className={`w-12 h-12 rounded-2xl ${bg} ${color} flex items-center justify-center mb-4 shadow-sm`}>
+                                { label: 'Total Tasks', value: totalTasks, icon: ListIcon, color: 'text-primary', bg: 'bg-primary/10', type: 'tasks' },
+                                { label: 'Total Subtasks', value: totalSubtasks, icon: Layers, color: 'text-indigo-500', bg: 'bg-indigo-500/10', type: 'subtasks' },
+                                { label: 'Total Details', value: totalDetails, icon: Database, color: 'text-blue-500', bg: 'bg-blue-500/10', type: 'details' },
+                                { label: 'Resolved (Done)', value: doneTasks, icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10', type: 'resolved' },
+                                { label: 'Instability', value: totalReopens, icon: RefreshCw, color: 'text-rose-500', bg: 'bg-rose-500/10', type: 'instability' },
+                            ].map(({ label, value, icon: Icon, color, bg, type }) => (
+                                <Link
+                                    key={label} 
+                                    href={route('dashboard.project.items', { board: board.id, type: type })}
+                                    className="glass-panel w-full text-left rounded-[2rem] border-white/40 shadow-xl p-6 transition-all hover:-translate-y-1 hover:shadow-2xl hover:border-primary/30 group cursor-pointer"
+                                >
+                                    <div className={`w-12 h-12 rounded-2xl ${bg} ${color} flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform`}>
                                         <Icon size={20} />
                                     </div>
-                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
-                                    <div className="text-3xl font-black text-foreground tracking-tighter">{value}</div>
-                                </div>
+                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 group-hover:text-primary transition-colors">{label}</p>
+                                    <div className="text-3xl font-black text-foreground tracking-tighter group-hover:text-primary transition-colors">{value}</div>
+                                </Link>
                             ))}
                         </div>
 
